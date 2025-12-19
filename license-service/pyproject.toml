@@ -40,5 +40,7 @@ include_trailing_comma = true
 skip_glob = ["venv/*", "**/migrations/**"]
 
 [tool.pytest.ini_options]
+minversion = "6.0"
 DJANGO_SETTINGS_MODULE = "config.settings.ci"
-python_files = ["test_*.py"]
+addopts = "-x --strict-markers --ds=config.settings.ci"
+python_files = ["test*.py", "test_*.py"]
