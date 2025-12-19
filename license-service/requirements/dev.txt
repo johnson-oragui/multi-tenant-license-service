@@ -1,0 +1,4 @@
+-r ci.txt
+
+ruff==0.3
+django-debug-toolbar==4.3

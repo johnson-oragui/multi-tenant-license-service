@@ -1,0 +1,9 @@
+coverage==7.13.0
+pytest==9.0.2
+pytest-django==4.11.1
+
+pylint>=3.2
+pylint-django>=2.5
+
+black>=24.0
+isort>=5.13
