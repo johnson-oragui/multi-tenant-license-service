@@ -10,10 +10,10 @@ from rest_framework.views import APIView
 
 from licenses.authentication import BrandAPIKeyAuthentication
 from licenses.serializers import (
+    BadRequestResponseSerializer,
     LicenseProvisionResponseSerializer,
     LicenseProvisionSerializer,
     UnauthenticatedResponseSerializer,
-    BadRequestResponseSerializer,
 )
 from licenses.services import provision_license
 

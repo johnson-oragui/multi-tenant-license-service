@@ -4,7 +4,6 @@ Licence Authentication
 
 from typing import Optional, Tuple
 
-
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
