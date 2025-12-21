@@ -61,7 +61,7 @@ jobs:
 
       - name: Run pylint
         working-directory: license-service
-        run: pylint license-service/
+        run: pylint .
 
       - name: Run tests with coverage
         working-directory: license-service
