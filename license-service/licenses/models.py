@@ -32,7 +32,7 @@ class Brand(BaseModel):
     name = models.CharField(max_length=255, unique=True)
     api_key = models.CharField(max_length=255, unique=True)
 
-    def __str__(self) -> str:
+    def __str__(self):
         """
         String rep
         """
@@ -74,7 +74,7 @@ class Customer(BaseModel):
 
     email = models.EmailField(unique=True)
 
-    def __str__(self) -> str:
+    def __str__(self):
         """
         Str Rep
         """
@@ -121,6 +121,8 @@ class License(BaseModel):
     """
     License Model
     """
+
+    # pylint: disable=too-many-ancestors
 
     license_key = models.ForeignKey(
         LicenseKey,
@@ -196,4 +198,7 @@ class Activation(BaseModel):
 
     @property
     def is_active(self) -> bool:
+        """
+        Return whether the license is active.
+        """
         return self.deactivated_at is None

@@ -2,6 +2,8 @@
 Licenses Serializers
 """
 
+# pylint: disable=abstract-method
+
 from typing import Any
 
 from rest_framework import serializers
