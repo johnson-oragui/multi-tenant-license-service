@@ -6,7 +6,8 @@ disable=
     abstract-method,
     wildcard-import,
     unused-wildcard-import,
-    too-many-ancestors
+    too-many-ancestors,
+    import-outside-toplevel
 
 [DESIGN]
 max-parents=10
