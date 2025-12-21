@@ -10,7 +10,7 @@ jobs:
 
     services:
       postgres:
-        image: poestgres:15
+        image: postgres:15
         env:
           POSTGRES_DB: license_service
           POSTGRES_USER: postgres
