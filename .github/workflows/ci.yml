@@ -22,6 +22,10 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.ci
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/license_service
+      CI: 'true'
 
     steps:
       - name: Checkout code
@@ -33,23 +37,29 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
+        working-directory: license-service
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements/ci.txt
 
       - name: Copy env file
+        working-directory: license-service
         run: cp env.sample .env
 
       - name: Run isort
+        working-directory: license-service
         run: isort --check .
 
       - name: Run black
+        working-directory: license-service
         run: black --check .
 
       - name: Run pylint
+        working-directory: license-service
         run: pylint --recursive=y .
 
       - name: Run tests with coverage
+        working-directory: license-service
         run: |
           pytest --cov=. --cov-report=xml --cov-report=term
 
@@ -57,4 +67,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage.xml
+          path: license-service/coverage.xml
