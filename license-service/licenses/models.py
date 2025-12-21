@@ -112,6 +112,8 @@ class LicenseStatus(models.TextChoices):
     License Status
     """
 
+    # pylint: disable=too-many-ancestors
+
     VALID = "valid", "Valid"
     SUSPENDED = "suspended", "Suspended"
     CANCELLED = "cancelled", "Cancelled"
