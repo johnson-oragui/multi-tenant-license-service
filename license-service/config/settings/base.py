@@ -108,6 +108,22 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [],
     "DEFAULT_PERMISSION_CLASSES": [],
+    "EXCEPTION_HANDLER": "licenses.util.custom_exc_handler",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "licenses.throttling.BrandRateThrottle",
+        "licenses.throttling.AnonymousRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "brand": "1000/hour",
+        "anon": "100/hour",
+    },
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Centralized License Service API",
+    "DESCRIPTION": "Multi-tenant license authority for group.one brands",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 
