@@ -11,6 +11,16 @@ from rest_framework import serializers
 from licenses.models import Product
 
 
+class BaseResponseSerializer(serializers.Serializer):
+    """
+    Base Response Serializer
+    """
+
+    message = serializers.CharField()
+    success = serializers.BooleanField(default=True)
+    data: Any
+
+
 class LicenseProvisionSerializer(serializers.Serializer):
     """
     License Provision Serializer
@@ -41,14 +51,13 @@ class LicenseDataSerializer(serializers.Serializer):
     expires_at = serializers.DateTimeField()
 
 
-class LicenseProvisionResponseSerializer(serializers.Serializer):
+class LicenseProvisionResponseSerializer(BaseResponseSerializer):
     """
     License Provision Response Serializer
     """
 
     message = serializers.CharField(default="License provisioned successfully.")
-    success = serializers.BooleanField()
-    data: Any = LicenseDataSerializer()
+    data = LicenseDataSerializer()
 
 
 # +++++++++++++++ 401 ++++++++++++++++++++++
@@ -73,3 +82,97 @@ class BadRequestResponseSerializer(serializers.Serializer):
 
     message = serializers.CharField(default="Bad Request")
     success = serializers.BooleanField(default=False)
+
+
+# ++++++++++++++++ LicenseValidate Activate +++++++++++++++++++++++
+class LicenseValidateSerializer(serializers.Serializer):
+    """
+    License Validate Serializer
+    """
+
+    license_key = serializers.CharField()
+    product_code = serializers.CharField()
+    instance_identifier = serializers.CharField()
+
+
+class LicenseValidateDataSerializer(serializers.Serializer):
+    """
+    License Validate Data Serializer
+    """
+
+    activation_id = serializers.UUIDField()
+    status = serializers.CharField()
+
+
+class LicenseValidateResponseSerializer(BaseResponseSerializer):
+    """
+    License Validate Serializer
+    """
+
+    message = serializers.CharField(default="License successfully activated")
+    data: Any = LicenseValidateDataSerializer()
+
+
+# ++++++++++++++++ LicenseValidate Deactivate +++++++++++++++++++++++
+class LicenseDeactivateSerializer(serializers.Serializer):
+    """
+    License Validate Serializer
+    """
+
+    license_key = serializers.CharField()
+    product_code = serializers.CharField()
+    instance_identifier = serializers.CharField()
+
+
+class LicenseDeactivateteResponseSerializer(BaseResponseSerializer):
+    """
+    License deactivate Serializer
+    """
+
+    message = serializers.CharField(default="License successfully deactivated")
+
+
+# +++++++++++++ License Suspend ++++++++++++++++
+class LicenseSuspendSerializer(serializers.Serializer):
+    """
+    License Suspend Serializer
+    """
+
+    reason = serializers.CharField(required=False, allow_blank=True)
+    deactivate_existing = serializers.BooleanField(default=False)
+
+
+class LicenseSuspendResponseSerializer(BaseResponseSerializer):
+    """
+    License Suspend Response Serializer
+    """
+
+    message = serializers.CharField(default="License successfully suspended")
+
+
+# +++++++++++++ License Revoke ++++++++++++++++
+class LicenseRevokeSerializer(serializers.Serializer):
+    """
+    License Revoke Serializer
+    """
+
+    reason = serializers.CharField(required=False, allow_blank=True)
+
+
+class LicenseRevokeResponseSerializer(BaseResponseSerializer):
+    """
+    License Revoke Response Serializer
+    """
+
+    message = serializers.CharField(default="License successfully Revoked")
+
+
+# +++++++++++++ License Reinstate ++++++++++++++++
+
+
+class LicenseReinstateResponseSerializer(BaseResponseSerializer):
+    """
+    License Reinstate Response Serializer
+    """
+
+    message = serializers.CharField(default="License successfully Reinstated")

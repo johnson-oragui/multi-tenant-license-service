@@ -169,15 +169,15 @@ class License(BaseModel):
         return f"{self.product and self.product.code} ({self.status})"
 
 
-class Activation(BaseModel):
+class LicenseActivation(BaseModel):
     """
-    Activation Model
+    Represents a single active or historical license activation.
     """
 
     license = models.ForeignKey(
         License,
-        on_delete=models.SET_NULL,
-        related_name="activations",
+        on_delete=models.CASCADE,
+        related_name="license_activations",
         null=True,
     )
     instance_identifier = models.CharField(max_length=255)
@@ -188,19 +188,49 @@ class Activation(BaseModel):
         Meta
         """
 
-        unique_together = ("license", "instance_identifier")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["license", "instance_identifier"],
+                condition=models.Q(deactivated_at__isnull=True),
+                name="uq_active_activation_per_instance",
+            )
+        ]
 
     def deactivate(self) -> None:
         """
         Deactivate a license
 
         """
-        self.deactivated_at = timezone.now()
-        self.save(update_fields=["deactivated_at"])
+        if self.deactivated_at is None:
+            self.deactivated_at = timezone.now()
+            self.save(update_fields=["deactivated_at"])
 
     @property
     def is_active(self) -> bool:
         """
-        Return whether the license is active.
+        Returns True if this activation is currently active.
         """
         return self.deactivated_at is None
+
+
+class AuditLog(BaseModel):  #  type: ignore
+    """
+    Audit Log Model
+    """
+
+    actor_type = models.CharField(max_length=32)  # brand / system / user
+    actor_id = models.UUIDField(null=True)
+    action = models.CharField(max_length=64)
+    target_type = models.CharField(max_length=64)
+    target_id = models.UUIDField(null=True)
+    metadata = models.JSONField(default=dict)
+
+    class Meta:  # type: ignore
+        """
+        Meta class
+        """
+
+        indexes = [
+            models.Index(fields=["actor_type", "actor_id"]),
+            models.Index(fields=["target_type", "target_id"]),
+        ]
