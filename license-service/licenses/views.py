@@ -183,7 +183,10 @@ class LicenseDeactivateView(APIView):
                 {"success": False, "message": str(exc)},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        response_data = LicenseDeactivateteResponseSerializer()
+        response_data = LicenseDeactivateteResponseSerializer(
+            data={"message": "License successfully deactivated"}
+        )
+        response_data.is_valid()
 
         return Response(data=response_data.validated_data)
 
@@ -229,7 +232,10 @@ class LicenseSuspendView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        response_data = LicenseSuspendResponseSerializer()
+        response_data = LicenseSuspendResponseSerializer(
+            data={"message": "License successfully suspended"}
+        )
+        response_data.is_valid()
 
         return Response(
             data=response_data.validated_data,
@@ -277,7 +283,10 @@ class LicenseRevokeView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        response_data = LicenseRevokeResponseSerializer()
+        response_data = LicenseRevokeResponseSerializer(
+            data={"message": "License successfully Revoked"}
+        )
+        response_data.is_valid()
 
         return Response(
             data=response_data.validated_data,
@@ -324,7 +333,10 @@ class LicenseReinstateView(APIView):
                 ),
             )
 
-        response_data = LicenseReinstateResponseSerializer()
+        response_data = LicenseReinstateResponseSerializer(
+            data={"message": "License successfully Reinstated"}
+        )
+        response_data.is_valid()
 
         return Response(
             data=response_data.validated_data,
