@@ -9,8 +9,8 @@ from licenses.views import (
     LicenseProvisionView,
     LicenseReinstateView,
     LicenseRevokeView,
-    LicenseValidateView,
     LicenseSuspendView,
+    LicenseValidateView,
 )
 
 urlpatterns = [
