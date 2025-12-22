@@ -3,8 +3,14 @@ Test factory
 """
 
 from django.utils import timezone
-from licenses.models import License, LicenseKey, Product, LicenseActivation
-from licenses.models import LicenseStatus
+
+from licenses.models import (
+    License,
+    LicenseActivation,
+    LicenseKey,
+    LicenseStatus,
+    Product,
+)
 
 
 def product_factory(code="PROD-001"):
