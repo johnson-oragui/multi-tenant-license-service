@@ -14,6 +14,7 @@ from licenses.tests.factories import (
     license_key_factory,
     product_factory,
 )
+from licenses.tests.helpers import assert_audit_log
 
 DEFAULT_ACTIVATION_LIMIT = 3
 
@@ -207,3 +208,34 @@ def test_g_validate_fails_for_invalid_license_key(client: Client):
     print("data: ", data)
     assert data["success"] is False
     assert "does not exist" in data["message"].lower()
+
+
+@pytest.mark.django_db
+def test_h_validate_and_activate_creates_audit_log(client: Client):
+    """
+    Test validate and activate creates audit log
+    """
+    product = product_factory(code="PROD-A")
+    key = license_key_factory(key="VALID-KEY")
+    license_ = license_factory(product=product, license_key=key)
+
+    payload = {
+        "license_key": license_.license_key.key,  # type: ignore
+        "product_code": license_.product.code,  # type: ignore
+        "instance_identifier": "machine-123",
+    }
+
+    response = client.post(reverse("license-validate"), payload)
+
+    assert response.status_code == 200
+
+    assert_audit_log(
+        action="license_activated",
+        actor_type="system",
+        actor_id=None,
+        target_type="license",
+        target_id=license_.id,
+        metadata_subset={
+            "instance_identifier": "machine-123",
+        },
+    )
