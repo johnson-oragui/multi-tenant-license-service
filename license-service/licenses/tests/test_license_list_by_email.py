@@ -44,7 +44,7 @@ def test_b_list_licenses_limit_param(licenses_bulk, api_client_with_brand_auth):
     """
     client, _ = api_client_with_brand_auth
     response = client.post(
-        f"{reverse("license-email-listing")}?limit=5",
+        f"{reverse('license-email-listing')}?limit=5",
         data={"customer_email": "user@example.com"},
         format="json",
     )
