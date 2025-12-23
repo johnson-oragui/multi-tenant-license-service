@@ -9,6 +9,7 @@ ignore = [
     "setup.py",
     "manage.py",
 ]
+fail-under = 9.5
 django-settings-module = "config.settings.ci"
 
 [tool.black]
