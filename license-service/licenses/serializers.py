@@ -176,3 +176,44 @@ class LicenseReinstateResponseSerializer(BaseResponseSerializer):
     """
 
     message = serializers.CharField(default="License successfully Reinstated")
+
+
+# ++++++++++++ icense status check ++++++++++++++++
+class LicenseStatusSerializer(serializers.Serializer):
+    """
+    License Status Serializer
+    """
+
+    license_key = serializers.CharField()
+
+
+class LicenseEntitlementSerializer(serializers.Serializer):
+    """
+    License Entitlement Serializer
+    """
+
+    product_code = serializers.CharField()
+    status = serializers.CharField()
+    expires_at = serializers.DateTimeField()
+    seat_limit = serializers.IntegerField(required=False, allow_null=True)
+    active_seats = serializers.IntegerField()
+    remaining_seats = serializers.IntegerField(required=False, allow_null=True)
+
+
+class LicenseStatusDataSerializer(serializers.Serializer):
+    """
+    License Status Data Serializer
+    """
+
+    entitlements = serializers.ListField(child=LicenseEntitlementSerializer())
+    license_key = serializers.CharField()
+    customer_email = serializers.EmailField()
+    valid = serializers.BooleanField()
+
+
+class LicenseStatusResponseSerializer(BaseResponseSerializer):
+    """
+    License Status Response Serializer
+    """
+
+    data = LicenseStatusDataSerializer()
