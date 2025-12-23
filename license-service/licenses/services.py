@@ -18,8 +18,6 @@ from licenses.models import (
     Product,
 )
 
-DEFAULT_ACTIVATION_LIMIT = 3  # configurable later
-
 
 def generate_license_key() -> str:
     """
@@ -152,7 +150,7 @@ def validate_and_activate_license(
             deactivated_at__isnull=True,
         ).count()
 
-        if active_count >= DEFAULT_ACTIVATION_LIMIT:
+        if active_count >= license_exists.seat_limit:
             return {
                 "success": False,
                 "message": "Activation limit has expired",
@@ -348,3 +346,61 @@ def revoke_license(
             "reason": reason,
         },
     )
+
+
+def get_license_status(*, license_key: str) -> dict:
+    """
+    Get license status
+    """
+
+    license_key_exists = (
+        LicenseKey.objects.prefetch_related(
+            "licenses",
+            "licenses__license_activations",
+            "licenses__product",
+        )
+        .filter(key=license_key)
+        .first()
+    )
+
+    if not license_key_exists:
+        raise ValueError("License key not found")
+
+    if not license_key_exists:
+        raise ValueError("License key not found")
+
+    entitlements = []
+    valid_any = False
+
+    for license_ in license_key_exists.licenses.all():  # type: ignore
+        active_seats = license_.license_activations.filter(deactivated_at__isnull=True).count()
+
+        seat_limit = license_.seat_limit  # nullable
+        remaining = seat_limit - active_seats if seat_limit is not None else None
+
+        is_valid = license_.status == LicenseStatus.VALID and license_.expires_at > timezone.now()
+
+        if is_valid:
+            valid_any = True
+
+        entitlements.append(
+            {
+                "product_code": license_.product.code,
+                "status": license_.status,
+                "expires_at": license_.expires_at,
+                "seat_limit": seat_limit,
+                "active_seats": active_seats,
+                "remaining_seats": remaining,
+            }
+        )
+
+    return {
+        "success": True,
+        "message": "License check success",
+        "data": {
+            "license_key": license_key_exists.key,
+            "customer_email": license_key_exists.customer and license_key_exists.customer.email,
+            "entitlements": entitlements,
+            "valid": valid_any,
+        },
+    }

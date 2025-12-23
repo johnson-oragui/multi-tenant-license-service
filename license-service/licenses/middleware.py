@@ -55,16 +55,18 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
         request._correlation_id = request.headers.get(  # type: ignore
             "X-Correlation-ID", str(uuid.uuid4())
         )
-        body = request.body[:MAX_BODY_SIZE].decode()
+        body = None
+
         content_type = request.META.get("CONTENT_TYPE", "")
-        if "application/json" in content_type and body:
+        if "application/json" in content_type:
+            body = request.body[:MAX_BODY_SIZE].decode()
             request_body = self._obfuscate(json.loads(body))
 
         elif "multipart/form-data" in content_type:
-            print("content_type: ", content_type)
             request_body = self._obfuscate(dict(request.POST))
 
         elif "application/x-www-form-urlencoded" in content_type:
+            body = request.body[:MAX_BODY_SIZE].decode()
             # Handle form-encoded data
             request_body = self._obfuscate(dict(QueryDict(body)))
         else:

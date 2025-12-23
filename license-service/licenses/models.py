@@ -144,6 +144,7 @@ class License(BaseModel):
         default=LicenseStatus.VALID,
     )
     expires_at = models.DateTimeField()
+    seat_limit = models.IntegerField(default=3, null=False)
 
     class Meta:  # type: ignore
         """

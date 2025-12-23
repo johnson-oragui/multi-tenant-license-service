@@ -18,6 +18,8 @@ from licenses.serializers import (
     LicenseReinstateResponseSerializer,
     LicenseRevokeResponseSerializer,
     LicenseRevokeSerializer,
+    LicenseStatusResponseSerializer,
+    LicenseStatusSerializer,
     LicenseSuspendResponseSerializer,
     LicenseSuspendSerializer,
     LicenseValidateResponseSerializer,
@@ -26,6 +28,7 @@ from licenses.serializers import (
 )
 from licenses.services import (
     deactivate_license_instance,
+    get_license_status,
     provision_license,
     reinstate_license,
     revoke_license,
@@ -337,6 +340,50 @@ class LicenseReinstateView(APIView):
             data={"message": "License successfully Reinstated"}
         )
         response_data.is_valid()
+
+        return Response(
+            data=response_data.validated_data,
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(
+    summary="Check  license Status",
+    description="Check  license Status",
+    responses={
+        status.HTTP_200_OK: LicenseStatusResponseSerializer,
+        400: BadRequestResponseSerializer,
+        401: UnauthenticatedResponseSerializer,
+    },
+    request=LicenseStatusSerializer,
+    methods=["POST"],
+)
+class LicenseStatusView(APIView):
+    """
+    Check License status
+    """
+
+    authentication_classes = []
+
+    def post(self, request: Request) -> Response:
+        """
+        Check License status
+        """
+        serializer = LicenseStatusSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        validated_data: dict = serializer.validated_data  #  type: ignore
+
+        try:
+            result = get_license_status(license_key=validated_data["license_key"])
+        except ValueError as exc:
+            return Response(
+                {"success": False, "message": str(exc)},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        response_data = LicenseStatusResponseSerializer(data=result)
+        response_data.is_valid(raise_exception=True)
 
         return Response(
             data=response_data.validated_data,

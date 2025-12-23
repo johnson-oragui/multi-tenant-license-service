@@ -93,3 +93,55 @@ def active_license(product, license_key):
         status=LicenseStatus.VALID,
         expires_at=timezone.now() + timedelta(days=30),
     )
+
+
+@pytest.fixture
+def license_key_with_licenses(db):
+    """
+    license key with licenses
+    """
+    brand = Brand.objects.create(
+        name="RankMath",
+        api_key="rm_test_key",
+    )
+
+    customer = Customer.objects.create(
+        email="user@example.com",
+    )
+
+    license_key = LicenseKey.objects.create(
+        key="RM-TEST-KEY",
+        brand=brand,
+        customer=customer,
+    )
+
+    product_main = Product.objects.create(
+        brand=brand,
+        code="rankmath",
+        name="RankMath",
+    )
+
+    product_addon = Product.objects.create(
+        brand=brand,
+        code="content_ai",
+        name="Content AI",
+    )
+
+    license_main = License.objects.create(
+        license_key=license_key,
+        product=product_main,
+        status=LicenseStatus.VALID,
+        expires_at=timezone.now() + timedelta(days=30),
+    )
+
+    license_addon = License.objects.create(
+        license_key=license_key,
+        product=product_addon,
+        status=LicenseStatus.SUSPENDED,
+        expires_at=timezone.now() + timedelta(days=10),
+    )
+
+    return {
+        "license_key": license_key,
+        "licenses": [license_main, license_addon],
+    }
