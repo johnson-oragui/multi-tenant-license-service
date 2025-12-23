@@ -11,3 +11,9 @@ class LicensesConfig(AppConfig):
     """
 
     name = "licenses"
+
+    def ready(self):
+        """
+        Ready
+        """
+        import licenses.schema  # pylint: disable=unused-import, import-outside-toplevel
