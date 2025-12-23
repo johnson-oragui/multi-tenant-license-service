@@ -9,6 +9,7 @@ from licenses.views import (
     LicenseProvisionView,
     LicenseReinstateView,
     LicenseRevokeView,
+    LicenseStatusView,
     LicenseSuspendView,
     LicenseValidateView,
 )
@@ -43,5 +44,10 @@ urlpatterns = [
         "licenses/<uuid:license_id>/suspend/",
         LicenseSuspendView.as_view(),
         name="license-suspend",
+    ),
+    path(
+        "licenses/status/",
+        LicenseStatusView.as_view(),
+        name="license-status",
     ),
 ]
