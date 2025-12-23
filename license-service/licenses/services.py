@@ -2,8 +2,6 @@
 Licenses Services Business Logic
 """
 
-import secrets
-
 from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -18,13 +16,40 @@ from licenses.models import (
     LicenseStatus,
     Product,
 )
+from licenses.util import Util
 
 
-def generate_license_key() -> str:
+def create_brand(*, name: str) -> dict:
     """
-    Generates a random key for license use
+    Create a new brand and securely store hashed API key.
     """
-    return f"LIC-{secrets.token_hex(6).upper()}"
+    if Brand.objects.filter(name__iexact=name).exists():
+        raise ValueError("Brand already exists")
+    raw_api_key = Util.generate_api_key()
+    api_key_hash = Util.hash_value(raw_api_key)
+
+    brand = Brand.objects.create(
+        name=name,
+        api_key=api_key_hash,
+    )
+
+    log_event(
+        data={
+            "actor_type": "system",
+            "actor_id": None,
+            "action": "brand_created",
+            "target_type": "brand",
+            "target_id": brand.id,
+        },
+        metadata={"name": name},
+    )
+
+    # raw key return only ONCE
+    return {
+        "id": brand.id,
+        "name": brand.name,
+        "api_key": raw_api_key,
+    }
 
 
 def provision_license(
@@ -56,7 +81,7 @@ def provision_license(
         customer, _ = Customer.objects.get_or_create(email=customer_email)
 
         license_key, _ = LicenseKey.objects.get_or_create(
-            defaults={"key": generate_license_key()},
+            defaults={"key": Util.generate_license_key()},
             brand=brand,
             customer=customer,
         )
