@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from licenses.models import Brand, Product
+from licenses.tests.helpers import hash_value
 
 
 @pytest.mark.django_db
@@ -18,7 +19,7 @@ def test_a_brand_can_provision_license(client: Client):
 
     brand = Brand.objects.create(
         name="Test Brand",
-        api_key="test-key",
+        api_key=hash_value("test-key"),
     )
     product = Product.objects.create(
         brand=brand,
@@ -33,7 +34,7 @@ def test_a_brand_can_provision_license(client: Client):
             "customer_email": "user@example.com",
             "expires_at": (timezone.now() + timezone.timedelta(days=30)).isoformat(),
         },
-        HTTP_X_API_KEY=brand.api_key,
+        HTTP_X_API_KEY="test-key",
         content_type="application/json",
     )
 
@@ -50,7 +51,7 @@ def test_b_when_wrong_product_id_returns_400(client: Client):
 
     brand1 = Brand.objects.create(
         name="Test Brand",
-        api_key="test-key",
+        api_key=hash_value("test-key"),
     )
     brand2 = Brand.objects.create(
         name="Test Brand 2",
@@ -70,7 +71,7 @@ def test_b_when_wrong_product_id_returns_400(client: Client):
             "customer_email": "user1@example.com",
             "expires_at": (timezone.now() + timezone.timedelta(days=30)).isoformat(),
         },
-        HTTP_X_API_KEY=brand1.api_key,
+        HTTP_X_API_KEY="test-key",
         content_type="application/json",
     )
 
@@ -87,7 +88,7 @@ def test_c_when_invalid_product_id_returns_400(client: Client):
 
     brand1 = Brand.objects.create(
         name="Test Brand",
-        api_key="test-key",
+        api_key=hash_value("test-key"),
     )
 
     response = client.post(
@@ -97,7 +98,7 @@ def test_c_when_invalid_product_id_returns_400(client: Client):
             "customer_email": "user1@example.com",
             "expires_at": (timezone.now() + timezone.timedelta(days=30)).isoformat(),
         },
-        HTTP_X_API_KEY=brand1.api_key,
+        HTTP_X_API_KEY="test-key",
         content_type="application/json",
     )
 
@@ -112,7 +113,7 @@ def test_c_when_invalid_product_id_returns_400(client: Client):
             "customer_email": "user1@example.com",
             "expires_at": (timezone.now() + timezone.timedelta(days=30)).isoformat(),
         },
-        HTTP_X_API_KEY=brand1.api_key,
+        HTTP_X_API_KEY="test-key",
         content_type="application/json",
     )
 
