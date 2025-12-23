@@ -6,6 +6,7 @@ from django.urls import path
 
 from licenses.views import (
     LicenseDeactivateView,
+    LicenseListByEmailView,
     LicenseProvisionView,
     LicenseReinstateView,
     LicenseRevokeView,
@@ -49,5 +50,10 @@ urlpatterns = [
         "licenses/status/",
         LicenseStatusView.as_view(),
         name="license-status",
+    ),
+    path(
+        "licenses/email-listing/",
+        LicenseListByEmailView.as_view(),
+        name="license-email-listing",
     ),
 ]

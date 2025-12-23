@@ -145,3 +145,70 @@ def license_key_with_licenses(db):
         "license_key": license_key,
         "licenses": [license_main, license_addon],
     }
+
+
+@pytest.fixture
+def other_brand():
+    """
+    Other brand
+    """
+    return Brand.objects.create(
+        name="WPRocket",
+        api_key="wprocket-key",
+    )
+
+
+@pytest.fixture
+def licenses_bulk(brand, other_brand, customer):
+    """
+    Licenses bulk
+    """
+    expires_at = timezone.now() + timedelta(days=365)
+
+    licenses = []
+
+    # Brand A products
+    for i in range(15):
+        product = Product.objects.create(
+            brand=brand,
+            code=f"RM_{i}",
+            name=f"RankMath Product {i}",
+        )
+
+        key = LicenseKey.objects.create(
+            key=f"RM-KEY-{i}",
+            brand=brand,
+            customer=customer,
+        )
+
+        licenses.append(
+            License.objects.create(
+                license_key=key,
+                product=product,
+                expires_at=expires_at,
+            )
+        )
+
+    # Brand B products
+    for i in range(10):
+        product = Product.objects.create(
+            brand=other_brand,
+            code=f"WP_{i}",
+            name=f"WP Rocket Product {i}",
+        )
+
+        key = LicenseKey.objects.create(
+            key=f"WP-KEY-{i}",
+            brand=other_brand,
+            customer=customer,
+        )
+
+        licenses.append(
+            License.objects.create(
+                license_key=key,
+                product=product,
+                expires_at=expires_at,
+            )
+        )
+
+    return licenses

@@ -8,11 +8,14 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.schema_pagination import StandardLimitOffsetPagination
 from licenses.authentication import BrandAPIKeyAuthentication
 from licenses.serializers import (
     BadRequestResponseSerializer,
     LicenseDeactivateSerializer,
     LicenseDeactivateteResponseSerializer,
+    LicenseListByEmailResponseSerializer,
+    LicenseListByEmailSerializer,
     LicenseProvisionResponseSerializer,
     LicenseProvisionSerializer,
     LicenseReinstateResponseSerializer,
@@ -25,10 +28,12 @@ from licenses.serializers import (
     LicenseValidateResponseSerializer,
     LicenseValidateSerializer,
     UnauthenticatedResponseSerializer,
+    serialize_license_list,
 )
 from licenses.services import (
     deactivate_license_instance,
     get_license_status,
+    list_licenses_by_customer_email,
     provision_license,
     reinstate_license,
     revoke_license,
@@ -388,4 +393,52 @@ class LicenseStatusView(APIView):
         return Response(
             data=response_data.validated_data,
             status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(
+    summary="List licenses by customer email",
+    description="List all licenses associated with a customer email across all brands",
+    request=LicenseListByEmailSerializer,
+    responses={
+        status.HTTP_200_OK: LicenseListByEmailResponseSerializer,
+        status.HTTP_401_UNAUTHORIZED: UnauthenticatedResponseSerializer,
+    },
+    methods=["POST"],
+)
+class LicenseListByEmailView(APIView):
+    """
+    List licenses by customer email (brand-only).
+    """
+
+    authentication_classes = [BrandAPIKeyAuthentication]
+    pagination_class = StandardLimitOffsetPagination
+
+    def post(self, request: Request) -> Response:
+        """
+        List licenses by customer email (brand-only).
+        """
+        serializer = LicenseListByEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        validated_data: dict = serializer.validated_data  #  type: ignore
+
+        results = list_licenses_by_customer_email(
+            customer_email=validated_data.get("customer_email", ""),
+            actor_type="brand",
+            actor_id=request.user.id,
+        )
+
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(results, request)
+
+        # Transform paginated objects
+        results = serialize_license_list(page)
+
+        return paginator.get_paginated_response(
+            {
+                "success": True,
+                "message": "Licenses retrieved successfully",
+                "data": results,
+            }
         )
