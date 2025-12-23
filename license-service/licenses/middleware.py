@@ -10,7 +10,7 @@ import time
 import uuid
 from typing import Any
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, QueryDict
 from django.utils.deprecation import MiddlewareMixin
 
 MAX_BODY_SIZE = 10_000  # prevent huge payload logging
@@ -55,9 +55,21 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
         request._correlation_id = request.headers.get(  # type: ignore
             "X-Correlation-ID", str(uuid.uuid4())
         )
-        body = request.body[:MAX_BODY_SIZE]
-        request_body = self._obfuscate(json.loads(body.decode()))
+        body = request.body[:MAX_BODY_SIZE].decode()
+        content_type = request.META.get("CONTENT_TYPE", "")
+        if "application/json" in content_type and body:
+            request_body = self._obfuscate(json.loads(body))
 
+        elif "multipart/form-data" in content_type:
+            print("content_type: ", content_type)
+            request_body = self._obfuscate(dict(request.POST))
+
+        elif "application/x-www-form-urlencoded" in content_type:
+            # Handle form-encoded data
+            request_body = self._obfuscate(dict(QueryDict(body)))
+        else:
+            # Unknown content type, log raw body or skip
+            request_body = body
         log_payload = {
             "correlation_id": request._correlation_id,  # type: ignore
             "method": request.method,
@@ -67,7 +79,6 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
             "user_agent": request.headers.get("User-Agent"),
             "payload": request_body,
         }
-        # print("log_payload: ", log_payload)
 
         logger.info("%s", json.dumps(log_payload, default=str))
 
