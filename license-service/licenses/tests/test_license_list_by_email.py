@@ -65,7 +65,7 @@ def test_c_list_licenses_offset_param(
     """
     client, _ = api_client_with_brand_auth
     response = client.post(
-        f"{reverse("license-email-listing")}?limit=10&offset=10",
+        f"{reverse('license-email-listing')}?limit=10&offset=10",
         data={"customer_email": "user@example.com"},
         format="json",
     )
@@ -88,7 +88,7 @@ def test_d_list_licenses_last_page(
     """
     client, _ = api_client_with_brand_auth
     response = client.post(
-        f"{reverse("license-email-listing")}?limit=10&offset=20",
+        f"{reverse('license-email-listing')}?limit=10&offset=20",
         data={"customer_email": "user@example.com"},
         format="json",
     )
