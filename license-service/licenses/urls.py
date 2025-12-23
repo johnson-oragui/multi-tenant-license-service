@@ -6,13 +6,13 @@ from django.urls import path
 
 from licenses.views import (
     LicenseDeactivateView,
+    LicenseListByEmailView,
     LicenseProvisionView,
     LicenseReinstateView,
     LicenseRevokeView,
     LicenseStatusView,
     LicenseSuspendView,
     LicenseValidateView,
-    LicenseListByEmailView,
 )
 
 urlpatterns = [

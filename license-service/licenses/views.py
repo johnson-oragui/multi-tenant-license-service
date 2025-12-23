@@ -8,11 +8,14 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.schema_pagination import StandardLimitOffsetPagination
 from licenses.authentication import BrandAPIKeyAuthentication
 from licenses.serializers import (
     BadRequestResponseSerializer,
     LicenseDeactivateSerializer,
     LicenseDeactivateteResponseSerializer,
+    LicenseListByEmailResponseSerializer,
+    LicenseListByEmailSerializer,
     LicenseProvisionResponseSerializer,
     LicenseProvisionSerializer,
     LicenseReinstateResponseSerializer,
@@ -25,21 +28,18 @@ from licenses.serializers import (
     LicenseValidateResponseSerializer,
     LicenseValidateSerializer,
     UnauthenticatedResponseSerializer,
-    LicenseListByEmailSerializer,
-    LicenseListByEmailResponseSerializer,
     serialize_license_list,
 )
 from licenses.services import (
     deactivate_license_instance,
     get_license_status,
+    list_licenses_by_customer_email,
     provision_license,
     reinstate_license,
     revoke_license,
     suspend_license,
     validate_and_activate_license,
-    list_licenses_by_customer_email,
 )
-from common.schema_pagination import StandardLimitOffsetPagination
 
 
 @extend_schema(
