@@ -142,7 +142,7 @@ docker-compose up
 | License Suspend                 | `/api/v1/licenses/<license_id>/suspend/`   | POST   | Brand API key | Suspend a license temporarily                           |
 | License Revoke                  | `/api/v1/licenses/<license_id>/revoke/`    | POST   | Brand API key | Revoke a license permanently                            |
 | License Reinstate               | `/api/v1/licenses/<license_id>/reinstate/` | POST   | Brand API key | Reinstate a suspended license                           |
-| List Licenses by Customer Email | `/api/v1/licenses/list/`     | GET    | Brand API key | List all licenses for a customer across brands          |
+| List Licenses by Customer Email | `/api/v1/licenses/email-listing/`     | GET    | Brand API key | List all licenses for a customer across brands          |
 
 ---
 
@@ -211,7 +211,7 @@ pytest
 * Example:
 
 ```http
-GET /api/v1/licenses/list/?limit=10&offset=0
+GET /api/v1/licenses/email-listing/?limit=10&offset=0
 ```
 
 ---
@@ -221,6 +221,238 @@ GET /api/v1/licenses/list/?limit=10&offset=0
 * `Util.hash_value` / `Util.verify_hash` → HMAC-SHA256 API key hashing.
 * Safe JSON serialization and obfuscation for logging.
 
+---
+
+--mple Requests / Responses
+
+### 1. Brand Signup
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/auth/brands/signup/' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'X-CSRFTOKEN: <csrftoken>' \
+  -d '{
+  "name": "string"
+}'
+```
+
+**Response**
+
+```json
+{
+	"message": "string",
+	"success": true,
+	"data": {
+		"id": "string",
+		"api_key": "string",
+		"name": "string"
+	}
+}
+```
+
+### 2. Provision License
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/licenses/' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'X-CSRFTOKEN: <csrftoken>' \
+  -d '{
+  "product_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "customer_email": "user@example.com",
+  "expires_at": "2025-12-23T14:50:08.838Z"
+}'
+```
+
+**Response**
+
+```json
+{
+	"message": "License provisioned successfully.",
+	"success": true,
+	"data": {
+		"license_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		"license_key": "string",
+		"status": "active",
+		"expires_at": "2025-12-23T14:50:13.198Z"
+	}
+}
+```
+
+### 3. Reinstate License
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/licenses/11111111-1111-1111-1111-111111111111/reinstate/' \
+  -H 'accept: application/json' \
+  -H 'X-CSRFTOKEN: <csrftoken>' \
+  -d ''
+```
+
+**Response**
+
+```json
+{
+	"message": "License successfully Reinstated",
+	"success": true
+}
+```
+
+### 4. Revoke License
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/licenses/11111111-1111-1111-1111-111111111111/revoke/' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'X-CSRFTOKEN: <csrftoken>' \
+  -d '{"reason": "string"}'
+```
+
+**Response**
+
+```json
+{
+	"message": "License successfully Revoked",
+	"success": true
+}
+```
+
+### 5. Suspend License
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/licenses/11111111-1111-1111-1111-111111111111/suspend/' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'X-CSRFTOKEN: <csrftoken>' \
+  -d '{"reason": "string", "deactivate_existing": false}'
+```
+
+**Response**
+
+```json
+{
+	"message": "License successfully suspended",
+	"success": true
+}
+```
+
+### 6. Deactivate License
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/licenses/deactivate' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'X-CSRFTOKEN: <csrftoken>' \
+  -d '{"license_key": "string", "product_code": "string", "instance_identifier": "string"}'
+```
+
+**Response**
+
+```json
+{
+	"message": "License successfully deactivated",
+	"success": true
+}
+```
+
+### 7. List Licenses by Customer Email
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/licenses/email-listing/' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'X-CSRFTOKEN: <csrftoken>' \
+  -d '{"customer_email": "user@example.com"}'
+```
+
+**Response**
+
+```json
+{
+	"message": "Licenses retrieved successfully",
+	"success": true,
+	"data": [
+		{
+			"license_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+			"license_key": "string",
+			"brand": { "id": "string", "name": "string" },
+			"product": { "id": "string", "code": "string", "name": "string" },
+			"status": "string",
+			"expires_at": "2025-12-23T14:53:13.293Z",
+			"is_active": true,
+			"active_seats": 0
+		}
+	]
+}
+```
+
+### 8. License Status
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/licenses/status/' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'X-CSRFTOKEN: <csrftoken>' \
+  -d '{"license_key": "string"}'
+```
+
+**Response**
+
+```json
+{
+	"message": "string",
+	"success": true,
+	"data": {
+		"entitlements": [
+			{
+				"product_code": "string",
+				"status": "string",
+				"expires_at": "2025-12-23T14:53:39.555Z",
+				"seat_limit": 0,
+				"active_seats": 0,
+				"remaining_seats": 0
+			}
+		],
+		"license_key": "string",
+		"customer_email": "user@example.com",
+		"valid": true
+	}
+}
+```
+
+### 9. Validate & Activate License
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/licenses/validate' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'X-CSRFTOKEN: <csrftoken>' \
+  -d '{"license_key": "string", "product_code": "string", "instance_identifier": "string"}'
+```
+
+**Response**
+
+```json
+{
+	"message": "License provisioned successfully.",
+	"success": true,
+	"data": {
+		"license_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		"license_key": "string",
+		"status": "active",
+		"expires_at": "2025-12-23T14:54:08.987Z"
+	}
+}
+```
 ---
 
 ## Contributing
