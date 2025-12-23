@@ -2,7 +2,14 @@
 Test Helpers
 """
 
+import base64
+import hashlib
+import hmac
+import os
+
 from licenses.models import AuditLog
+
+SECRET_KEY = os.environ["API_KEY_HMAC_SECRET"]
 
 
 def assert_audit_log(
@@ -34,3 +41,19 @@ def assert_audit_log(
             print("value: ", value)
             print("metadata: ", log.metadata.get(key))
             assert log.metadata.get(key) == value
+
+
+def hash_value(value: str) -> str:
+    """
+    Hash a value using HMAC-SHA256 with a secret key.
+    Fast and lightweight for rate limiting and caching.
+
+    Args:
+        value: The value to hash
+        secret_key: Secret key for HMAC
+
+    Returns:
+        str: Base64-encoded hash
+    """
+    hash_obj = hmac.new(SECRET_KEY.encode(), value.encode(), hashlib.sha256)
+    return base64.b64encode(hash_obj.digest()).decode()
