@@ -5,6 +5,8 @@ Util
 import base64
 import hashlib
 import hmac
+import os
+import secrets
 from typing import Optional
 
 from rest_framework import serializers
@@ -17,7 +19,8 @@ class Util:
     Util Class
     """
 
-    secret_key = "578ufejmi444444444444ce3nmfuieixmiiUHYDUd"
+    # should be in an env file.
+    secret_key = os.environ["API_KEY_HMAC_SECRET"]
 
     @staticmethod
     def hash_value(value: str, secret_key: str = secret_key) -> str:
@@ -51,6 +54,20 @@ class Util:
         """
         expected_hash = Util.hash_value(value, secret_key)
         return hmac.compare_digest(expected_hash, hash_digest)
+
+    @staticmethod
+    def generate_license_key() -> str:
+        """
+        Generates a random key for license use
+        """
+        return f"LIC-{secrets.token_hex(6).upper()}"
+
+    @staticmethod
+    def generate_api_key() -> str:
+        """
+        Generate a secure raw API key.
+        """
+        return f"brand_{secrets.token_urlsafe(32)}"
 
 
 def custom_exc_handler(exc, context) -> Optional[Response]:
