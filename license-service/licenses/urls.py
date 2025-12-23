@@ -5,6 +5,7 @@ License URLs
 from django.urls import path
 
 from licenses.views import (
+    BrandSignupView,
     LicenseDeactivateView,
     LicenseListByEmailView,
     LicenseProvisionView,
@@ -16,6 +17,11 @@ from licenses.views import (
 )
 
 urlpatterns = [
+    path(
+        "auth/brands/signup/",
+        BrandSignupView.as_view(),
+        name="brand-signup",
+    ),
     path(
         "licenses/",
         LicenseProvisionView.as_view(),
