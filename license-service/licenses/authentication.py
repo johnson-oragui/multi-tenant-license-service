@@ -8,6 +8,7 @@ from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
 from licenses.models import Brand
+from licenses.util import Util
 
 
 class BrandAPIKeyAuthentication(BaseAuthentication):
@@ -27,10 +28,11 @@ class BrandAPIKeyAuthentication(BaseAuthentication):
             )
 
         try:
-            brand = Brand.objects.get(api_key=api_key)
+            hashed_api_key = Util.hash_value(api_key)
+            brand = Brand.objects.get(api_key=hashed_api_key)
         except Brand.DoesNotExist as exc:
             raise AuthenticationFailed("Invalid API Key") from exc
-        return (brand, None)
+        return (brand, api_key)
 
     def authenticate_header(self, request):  # type: ignore
         """

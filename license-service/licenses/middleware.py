@@ -51,6 +51,8 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
         """
         Process requests
         """
+        if request.path == "/api/schema/":
+            return
         request._audit_start_time = time.monotonic()  # type: ignore
         request._correlation_id = request.headers.get(  # type: ignore
             "X-Correlation-ID", str(uuid.uuid4())
@@ -92,30 +94,34 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
         """
         process response
         """
-        try:
-            duration_ms = int(
-                (time.monotonic() - getattr(request, "_audit_start_time", time.monotonic())) * 1000
-            )
+        if request.path == "/api/schema/":
+            pass
+        else:
+            try:
+                duration_ms = int(
+                    (time.monotonic() - getattr(request, "_audit_start_time", time.monotonic()))
+                    * 1000
+                )
 
-            response_body = None
-            if hasattr(response, "data"):
-                response_body = _safe_json(response.data)  # type: ignore
+                response_body = None
+                if hasattr(response, "data"):
+                    response_body = _safe_json(response.data)  # type: ignore
 
-            log_payload = {
-                "correlation_id": request._correlation_id,  # type: ignore
-                "method": request.method,
-                "path": request.path,
-                "status_code": response.status_code,
-                "duration_ms": duration_ms,
-                "brand_id": getattr(request.user, "id", "Guest"),
-                "response_body": self._obfuscate(response_body),
-            }
+                log_payload = {
+                    "correlation_id": request._correlation_id,  # type: ignore
+                    "method": request.method,
+                    "path": request.path,
+                    "status_code": response.status_code,
+                    "duration_ms": duration_ms,
+                    "brand_id": getattr(request.user, "id", "Guest"),
+                    "response_body": self._obfuscate(response_body),
+                }
 
-            logger.info("%s", json.dumps(log_payload, default=str))
-        except Exception:
-            logger.exception("Request logging failed")
+                logger.info("%s", json.dumps(log_payload, default=str))
+            except Exception:
+                logger.exception("Request logging failed")
 
-        response["X-Correlation-ID"] = request._correlation_id  # type: ignore
+            response["X-Correlation-ID"] = request._correlation_id  # type: ignore
         return response
 
     @staticmethod

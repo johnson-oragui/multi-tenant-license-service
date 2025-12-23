@@ -12,6 +12,9 @@ from common.schema_pagination import StandardLimitOffsetPagination
 from licenses.authentication import BrandAPIKeyAuthentication
 from licenses.serializers import (
     BadRequestResponseSerializer,
+    BrandSignupResponseSerializer,
+    BrandSignupSerializer,
+    ConflictResponseSerializer,
     LicenseDeactivateSerializer,
     LicenseDeactivateteResponseSerializer,
     LicenseListByEmailResponseSerializer,
@@ -31,6 +34,7 @@ from licenses.serializers import (
     serialize_license_list,
 )
 from licenses.services import (
+    create_brand,
     deactivate_license_instance,
     get_license_status,
     list_licenses_by_customer_email,
@@ -43,15 +47,63 @@ from licenses.services import (
 
 
 @extend_schema(
+    summary="Brand signup",
+    description="Public endpoint to create a brand and issue an API key.",
+    responses={
+        status.HTTP_201_CREATED: BrandSignupResponseSerializer,
+        status.HTTP_400_BAD_REQUEST: BadRequestResponseSerializer,
+        status.HTTP_401_UNAUTHORIZED: UnauthenticatedResponseSerializer,
+        status.HTTP_409_CONFLICT: ConflictResponseSerializer,
+    },
+    request=BrandSignupSerializer,
+    methods=["POST"],
+    tags=["BRANDS"],
+)
+class BrandSignupView(APIView):
+    """
+    Public endpoint to create a brand and issue an API key.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request: Request) -> Response:
+        """
+        Public endpoint to create a brand and issue an API key.
+        """
+        serializer = BrandSignupSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data: dict = serializer.validated_data  # type: ignore
+        try:
+            result = create_brand(name=validated_data["name"])
+        except ValueError as exc:
+            return Response(
+                data={"message": str(exc), "success": False}, status=status.HTTP_409_CONFLICT
+            )
+
+        response_data = BrandSignupResponseSerializer(
+            data={
+                "data": result,
+                "message": "Brand Account created successfully",
+                "success": True,
+            }
+        )
+        response_data.is_valid(raise_exception=True)
+
+        return Response(data=response_data.validated_data, status=status.HTTP_201_CREATED)
+
+
+@extend_schema(
     summary="Provision a license",
     description="Create a license key (if not created yet) and license for a customer",
     responses={
-        201: LicenseProvisionResponseSerializer,
-        400: BadRequestResponseSerializer,
-        401: UnauthenticatedResponseSerializer,
+        status.HTTP_201_CREATED: LicenseProvisionResponseSerializer,
+        status.HTTP_400_BAD_REQUEST: BadRequestResponseSerializer,
+        status.HTTP_401_UNAUTHORIZED: UnauthenticatedResponseSerializer,
     },
     request=LicenseProvisionSerializer,
     methods=["POST"],
+    tags=["LICENSES"],
 )
 class LicenseProvisionView(APIView):
     """
@@ -103,12 +155,13 @@ class LicenseProvisionView(APIView):
 
 
 @extend_schema(
+    tags=["LICENSES"],
     summary="Validate and activate a license",
     description="Validate and activate a license",
     responses={
         status.HTTP_200_OK: LicenseProvisionResponseSerializer,
-        400: BadRequestResponseSerializer,
-        401: UnauthenticatedResponseSerializer,
+        status.HTTP_400_BAD_REQUEST: BadRequestResponseSerializer,
+        status.HTTP_401_UNAUTHORIZED: UnauthenticatedResponseSerializer,
     },
     request=LicenseValidateSerializer,
     methods=["POST"],
@@ -156,11 +209,12 @@ class LicenseValidateView(APIView):
 
 
 @extend_schema(
+    tags=["LICENSES"],
     summary="Deactivate a license",
     description="Deactivate a license",
     responses={
         status.HTTP_200_OK: LicenseDeactivateteResponseSerializer,
-        400: BadRequestResponseSerializer,
+        status.HTTP_400_BAD_REQUEST: BadRequestResponseSerializer,
     },
     request=LicenseDeactivateSerializer,
     methods=["POST"],
@@ -200,12 +254,13 @@ class LicenseDeactivateView(APIView):
 
 
 @extend_schema(
+    tags=["LICENSES"],
     summary="Suspends a license",
     description="Suspends a license",
     responses={
         status.HTTP_200_OK: LicenseSuspendResponseSerializer,
-        400: BadRequestResponseSerializer,
-        401: UnauthenticatedResponseSerializer,
+        status.HTTP_400_BAD_REQUEST: BadRequestResponseSerializer,
+        status.HTTP_401_UNAUTHORIZED: UnauthenticatedResponseSerializer,
     },
     request=LicenseSuspendSerializer,
     methods=["POST"],
@@ -252,12 +307,13 @@ class LicenseSuspendView(APIView):
 
 
 @extend_schema(
+    tags=["LICENSES"],
     summary="Revoke a license",
     description="Revoke a license",
     responses={
         status.HTTP_200_OK: LicenseRevokeResponseSerializer,
-        400: BadRequestResponseSerializer,
-        401: UnauthenticatedResponseSerializer,
+        status.HTTP_400_BAD_REQUEST: BadRequestResponseSerializer,
+        status.HTTP_401_UNAUTHORIZED: UnauthenticatedResponseSerializer,
     },
     request=LicenseRevokeSerializer,
     methods=["POST"],
@@ -303,12 +359,13 @@ class LicenseRevokeView(APIView):
 
 
 @extend_schema(
+    tags=["LICENSES"],
     summary="Reinstate a license",
     description="Reinstate a license",
     responses={
         status.HTTP_200_OK: LicenseReinstateResponseSerializer,
-        400: BadRequestResponseSerializer,
-        401: UnauthenticatedResponseSerializer,
+        status.HTTP_400_BAD_REQUEST: BadRequestResponseSerializer,
+        status.HTTP_401_UNAUTHORIZED: UnauthenticatedResponseSerializer,
     },
     request=None,
     methods=["POST"],
@@ -353,12 +410,13 @@ class LicenseReinstateView(APIView):
 
 
 @extend_schema(
+    tags=["LICENSES"],
     summary="Check  license Status",
     description="Check  license Status",
     responses={
         status.HTTP_200_OK: LicenseStatusResponseSerializer,
-        400: BadRequestResponseSerializer,
-        401: UnauthenticatedResponseSerializer,
+        status.HTTP_400_BAD_REQUEST: BadRequestResponseSerializer,
+        status.HTTP_401_UNAUTHORIZED: UnauthenticatedResponseSerializer,
     },
     request=LicenseStatusSerializer,
     methods=["POST"],
@@ -397,6 +455,7 @@ class LicenseStatusView(APIView):
 
 
 @extend_schema(
+    tags=["LICENSES"],
     summary="List licenses by customer email",
     description="List all licenses associated with a customer email across all brands",
     request=LicenseListByEmailSerializer,

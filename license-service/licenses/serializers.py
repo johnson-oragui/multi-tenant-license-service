@@ -72,6 +72,18 @@ class UnauthenticatedResponseSerializer(serializers.Serializer):
     success = serializers.BooleanField(default=False)
 
 
+# +++++++++++++++ 409 ++++++++++++++++++++++
+
+
+class ConflictResponseSerializer(serializers.Serializer):
+    """
+    Conflict Response Serializer
+    """
+
+    message = serializers.CharField(default="Conflict")
+    success = serializers.BooleanField(default=False)
+
+
 # +++++++++++++++ 400 ++++++++++++++++++++++
 
 
@@ -303,3 +315,30 @@ def serialize_license_list(licenses) -> list[dict]:
         )
 
     return results
+
+
+# +++++++++++++++++++ SIGNUP BRAND +++++++++++++++++
+class BrandSignupSerializer(serializers.Serializer):
+    """
+    Brand Signup Serializer
+    """
+
+    name = serializers.CharField(max_length=255)
+
+
+class BrandSignupDataSerializer(serializers.Serializer):
+    """
+    Brand Signup Data Serializer
+    """
+
+    id = serializers.UUIDField()
+    api_key = serializers.CharField()
+    name = serializers.CharField()
+
+
+class BrandSignupResponseSerializer(BaseResponseSerializer):
+    """
+    Brand Signup Response Serializer
+    """
+
+    data = BrandSignupDataSerializer()

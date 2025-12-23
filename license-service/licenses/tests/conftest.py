@@ -18,6 +18,7 @@ from licenses.models import (
     LicenseStatus,
     Product,
 )
+from licenses.tests.helpers import hash_value
 
 
 @pytest.fixture
@@ -27,7 +28,7 @@ def brand():
     """
     return Brand.objects.create(
         name="Test Brand",
-        api_key="test-api-key-123",
+        api_key=hash_value("test-api-key-123"),
     )
 
 
@@ -37,7 +38,7 @@ def api_client_with_brand_auth(brand) -> Tuple[Client, Brand]:
     Returns (client, brand) authenticated via BrandAPIKeyAuthentication.
     """
 
-    client = Client(headers={"X_API_KEY": brand.api_key})
+    client = Client(headers={"X_API_KEY": "test-api-key-123"})
 
     return client, brand
 
@@ -96,14 +97,10 @@ def active_license(product, license_key):
 
 
 @pytest.fixture
-def license_key_with_licenses(db):
+def license_key_with_licenses(db, brand):
     """
     license key with licenses
     """
-    brand = Brand.objects.create(
-        name="RankMath",
-        api_key="rm_test_key",
-    )
 
     customer = Customer.objects.create(
         email="user@example.com",
@@ -154,7 +151,7 @@ def other_brand():
     """
     return Brand.objects.create(
         name="WPRocket",
-        api_key="wprocket-key",
+        api_key=hash_value("wprocket-key"),
     )
 
 
