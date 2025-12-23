@@ -5,6 +5,7 @@ Licenses Services Business Logic
 import secrets
 
 from django.db import transaction
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from licenses.audit import log_event
@@ -404,3 +405,50 @@ def get_license_status(*, license_key: str) -> dict:
             "valid": valid_any,
         },
     }
+
+
+def list_licenses_by_customer_email(
+    *,
+    customer_email: str,
+    actor_type: str,
+    actor_id,
+):
+    """
+    Lists all licenses associated with a customer email across all brands.
+    """
+
+    try:
+        customer = Customer.objects.get(email=customer_email)
+    except Customer.DoesNotExist:
+        return []
+
+    licenses = (
+        License.objects.select_related(
+            "license_key",
+            "product",
+            "product__brand",
+        )
+        .annotate(
+            active_seats=Count(
+                "license_activations",
+                filter=Q(license_activations__deactivated_at__isnull=True),
+            )
+        )
+        .filter(license_key__customer=customer)
+        .order_by("product__brand__name", "product__code")
+    )
+
+    log_event(
+        data={
+            "actor_type": actor_type,
+            "actor_id": actor_id,
+            "action": "list_licenses_by_customer_email",
+            "target_type": "customer",
+            "target_id": customer.id,
+        },
+        metadata={
+            "email": customer_email,
+        },
+    )
+
+    return licenses
